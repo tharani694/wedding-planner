@@ -1,26 +1,37 @@
 import { useState } from "react";
+import { useMutation } from "@apollo/client";
+import { ADD_GUEST } from "../../graphql/mutations";
+import { GET_GUESTS } from "../../graphql/queries";
 
-function GuestForm({ onAddGuest }) {
+function GuestForm() {
     const [name, setName] = useState("");
     const [phone, setPhone] = useState("");
     const [rsvp, setRsvp] = useState("Yes");
-
-    const handleSubmit = (e) => {
+    const [addGuest] = useMutation(ADD_GUEST, {
+        refetchQueries: [{ query: GET_GUESTS, fetchPolicy: 'network-only' }],
+    });
+    
+    const handleSubmit = async(e) => {
         e.preventDefault();
 
         if(!name.trim()) return;
 
-        const newGuest = {
-            id:  Date.now(),
-            name,
-            phone, 
-            rsvp
-        }
-
-        onAddGuest(newGuest)
+    try {
+        await addGuest({
+            variables: {
+                input: {
+                    name,
+                    phone, 
+                    rsvp
+                }
+            }
+        })
         setName("");
         setPhone("");
         setRsvp("Yes");
+    } catch (err) {
+            console.error(err)
+        }
     }
 
     return (

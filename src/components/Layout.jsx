@@ -1,60 +1,71 @@
-import { NavLink, Outlet, Link } from "react-router-dom"
-
-// function Layout() {
-//     return (
-//         <div style={{padding: 20 }}>
-//             <nav style={{marginBottom: 20 }}>
-//                 <Link to='/' style={{marginRight: 10}} >DashBoard</Link>
-//                 <Link to='/guests' style={{marginRight: 10}}>Guests</Link>
-//             </nav>
-
-//             <Outlet />
-//         </div>
-//     )
-// }
+import { NavLink, Outlet } from "react-router-dom";
+import { useQuery } from "@apollo/client";
+import { NAV_STATS_QUERY } from "../graphql/queries";
 
 function Layout() {
-    return (
-        <>
-        <NavLink 
-            to="/" 
-            style={({ isActive }) => ({ 
-                marginRight: 10, 
-                fontWeight: isActive ? "bold" : "normal" 
-            })}
-            >
-            Dashboard
+  const { data, loading, error } = useQuery(NAV_STATS_QUERY);
+
+  const guestCount = data?.guests?.length || 0;
+  const vendorCount = data?.vendors?.length || 0;
+
+  if (loading) return <p>Loading...</p>;
+  if (error) return <p>Error: {error.message}</p>;
+
+  return (
+    <div style={{ padding: 20 }}>
+      <nav style={{ marginBottom: 20 }}>
+        <NavLink
+          to="/"
+          style={({ isActive }) => ({
+            marginRight: 10,
+            fontWeight: isActive ? "bold" : "normal",
+          })}
+        >
+          Dashboard
         </NavLink>
         <NavLink
-            to="guests" 
-            style={({ isActive }) => ({ 
-                marginRight: 10, 
-                fontWeight: isActive ? "bold" : "normal" 
-            })}
-            >
-            Guests
-        </NavLink>
-        <Link to="/budget" style={{ marginRight: 10 }}>Budget</Link>
-        <NavLink
-            to="marketplace"
-            style={({ isActive }) => ({
-                marginRight: 10,
-                fontWeight: isActive ? 'bold' : 'normal',
-            })}>
-        Vendor Market
+          to="guests"
+          style={({ isActive }) => ({
+            marginRight: 10,
+            fontWeight: isActive ? "bold" : "normal",
+          })}
+        >
+          Guests ({guestCount})
         </NavLink>
         <NavLink
-            to="vendors" 
-            style={({ isActive }) => ({ 
-                marginRight: 10, 
-                fontWeight: isActive ? "bold" : "normal" 
-            })}
-            >
-            Vendors
+          to="budget"
+          style={({ isActive }) => ({
+            marginRight: 10,
+            fontWeight: isActive ? "bold" : "normal",
+          })}
+        >
+          Budget
         </NavLink>
-        <Outlet />
-        </>
-    )
+
+        <NavLink
+          to="marketplace"
+          style={({ isActive }) => ({
+            marginRight: 10,
+            fontWeight: isActive ? "bold" : "normal",
+          })}
+        >
+          Vendor Market
+        </NavLink>
+
+        <NavLink
+          to="vendors"
+          style={({ isActive }) => ({
+            marginRight: 10,
+            fontWeight: isActive ? "bold" : "normal",
+          })}
+        >
+          Vendors ({vendorCount})
+        </NavLink>
+      </nav>
+
+      <Outlet />
+    </div>
+  );
 }
 
 export default Layout

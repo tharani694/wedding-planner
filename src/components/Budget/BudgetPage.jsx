@@ -1,97 +1,30 @@
-import { useEffect, useState } from "react";
+import { useQuery } from "@apollo/client";
 import BudgetForm from "./BudgetForm";
 import BudgetSummary from "./BudgetSummary";
 import CategoryForm from "./CategoryForm";
 import CategoryList from "./CategoryList";
 
-function BudgetPage({budget, setBudget}) {
-  useEffect(() => {
-    fetch("http://localhost:4000/budget")
-      .then(res => res.json())
-      .then(data => setBudget({
-        total: data.total ?? 0,
-        categories: data.categories ?? []
-      }));
-  }, []);
+import {
+  GET_BUDGET
+} from "../../graphql/queries";
 
-  const totalAllocated = budget.categories.reduce(
-    (sum, c) => sum + Number(c.allocated || 0),
-    0
-  );
+function BudgetPage() {
+  const { data, loading, error } = useQuery(GET_BUDGET);
 
-  const totalSpent = budget.categories.reduce(
-    (sum, c) => sum + Number(c.spent || 0),
-    0
-  )
+  if (loading) return <p>Loading budget...</p>;
+  if (error) return <p>Error loading budget</p>;
 
-  async function updateTotal(total) {
-    const res = await fetch("http://localhost:4000/budget/total", {
-      method: "PUT",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ total })
-    });
-    const data = await res.json();
-    setBudget(data);
-  }
-
-  async function addCategory(category) {
-    const res = await fetch("http://localhost:4000/budget/categories", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify(category)
-    });
-    const saved = await res.json();
-    setBudget(prev => ({
-      ...prev,
-      categories: [...prev.categories, saved]
-    }));
-  }
-
-  async function deleteCategory(id) {
-    await fetch(`http://localhost:4000/budget/categories/${id}`, {
-      method: "DELETE"
-    });
-
-    setBudget(prev => ({
-      ...prev,
-      categories: prev.categories.filter(c => c.id !== id)
-    }));
-  }
-
-  async function updateCategory(id, updates) {
-    await fetch(`http://localhost:4000/budget/categories/${id}`, {
-      method: "PUT",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify(updates)
-    });
-  
-    setBudget(prev => ({
-      ...prev,
-      categories: prev.categories.map(c =>
-        c.id === id ? { ...c, ...updates } : c
-      )
-    }));
-  }
+  const budget = data?.budget;
+  const categories = budget?.categories || [];
 
   return (
     <div>
       <h2>Budget</h2>
-
-      <BudgetForm onUpdate={updateTotal} />
-      <BudgetSummary
-        total={budget.total}
-        allocated={totalAllocated}
-        spent={totalSpent}
-      />
-
+      <BudgetForm />
+      <BudgetSummary budget={budget}/>
       <hr />
-
-      <CategoryForm onAdd={addCategory} />
-      <CategoryList
-        categories={budget.categories}
-        onDelete={deleteCategory}
-        onUpdate={updateCategory}
-      />
+      <CategoryForm />
+      <CategoryList categories={categories} />
     </div>
   );
 }

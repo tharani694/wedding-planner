@@ -1,9 +1,29 @@
+import { useMutation, useQuery } from "@apollo/client"
 import { useState } from "react"
-function GuestList({guests, onDelete, onUpdate, search}) {
+import { GET_GUESTS } from "../../graphql/queries"
+import { DELETE_GUEST, UPDATE_GUEST } from "../../graphql/mutations";
+
+function GuestList({ search }) {
+    const { data, loading, error } = useQuery(GET_GUESTS);
+
+    const [deleteGuest] = useMutation(DELETE_GUEST , {
+        refetchQueries: [{ query: GET_GUESTS, fetchPolicy: 'network-only' }]
+    })
+
+    const [updateGuest] = useMutation(UPDATE_GUEST, {
+        refetchQueries: [{ query: GET_GUESTS, fetchPolicy: 'network-only' }]
+    })
+
+    const guests = data?.guests || []
+
     const [editingId, setEditingId] = useState(null)
     const [editedName, setEditedName] = useState("")
     const [editedPhone, setEditedPhone] = useState("")
     const [editedRsvp, setEditedRsvp] = useState("Yes")
+
+    if(loading) return <p>Loading Guests ...</p>
+    if(error) return <p>Error Loading guests</p>
+    if (guests.length === 0) return <p>No Guests yet!</p>;
 
 
     function startEdit(guest) {
@@ -14,17 +34,18 @@ function GuestList({guests, onDelete, onUpdate, search}) {
     }
 
     function saveEdit(id) {
-        onUpdate(id, {
-            name: editedName,
-            phone: editedPhone,
-            rsvp: editedRsvp
+        updateGuest({
+            variables: {
+                input: {
+                    id,
+                    name: editedName,
+                    phone: editedPhone,
+                    rsvp: editedRsvp
+                }
+            }
         })
         setEditingId(null)
     }
-    if(guests.length === 0) {
-        return <p> No Guests yet!</p>
-    }
-
 
     function highLight(text, query) {
         if(!query) return text
@@ -36,10 +57,14 @@ function GuestList({guests, onDelete, onUpdate, search}) {
         )
     }
 
+    const filteredGuests = guests.filter((guest) =>
+        guest.name.toLowerCase().includes(search.toLowerCase())
+      );
+
     return (
         <>
         <ul>
-            {guests.map((guest) => (
+            {filteredGuests.map((guest) => (
                 <li key={guest.id} style={{ marginBottom: 8 }}>
                     {editingId === guest.id ? 
                     (
@@ -64,7 +89,7 @@ function GuestList({guests, onDelete, onUpdate, search}) {
                             Edit
                         </button>
                         <button 
-                        onClick={() => onDelete(guest.id)} 
+                        onClick={() => deleteGuest({variables : {id: guest.id }})} 
                         style={{marginLeft: 10}}>
                             Delete
                         </button>

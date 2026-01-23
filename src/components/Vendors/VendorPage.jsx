@@ -1,59 +1,28 @@
-import { useEffect, useState } from "react";
+import { useQuery } from "@apollo/client";
 import VendorForm from "./VendorForm";
 import VendorList from "./VendorList";
+import { GET_BUDGET, GET_VENDORS } from "../../graphql/queries";
 
-function VendorPage({categories}) {
-    const [vendors, setVendors] = useState([])
-
-    useEffect(() => {
-        fetch("http://localhost:4000/vendors")
-        .then(res => res.json())
-        .then(setVendors)
-    }, [])
-
-    const addVendor = async(vendor) => {
-        const res = await fetch("http://localhost:4000/vendors", {
-            method: 'POST',
-            headers: {"Content-Type": "application/json"},
-            body: JSON.stringify(vendor)
-        })
-        
-        const saved = await res.json()
-        setVendors((prev) => [...prev, saved])
-    }
-
-    const deleteVendor = async(id) => {
-        await fetch(`http://localhost:4000/vendors/${id}`, {
-            method: 'DELETE'
-        })
-
-        setVendors(prev => prev.filter(v => v.id !== id))
-    }
-
-    const updateVendor = async(id, updates) => {
-        await fetch(`http://localhost:4000/vendors/${id}`, {
-            method: 'PUT',
-            headers: {"Content-Type" : "application/json"},
-            body: JSON.stringify(updates)
-        })
-
-        setVendors(prev =>
-            prev.map(v => v.id === id ? { ...v, ...updates } : v)
-        );
-    }
-
+function VendorPage() {
+    const { data: budgetData, loading: budgetLoading, error: budgetError } = useQuery(GET_BUDGET)
+    const { data, loading, error } = useQuery(GET_VENDORS);
+    if (loading) return <p>Loading vendors...</p>;
+    if (error) return <p>Error loading vendors</p>;
+    const budget = budgetData?.budget;
+    const categories = budget?.categories || [];
+    const vendors = data?.vendors || [];
     return (
         <>
         <h2>Vendors</h2>
-        <VendorForm categories={categories} onAdd={addVendor} />
-        <VendorList 
-            vendors={vendors} 
-            categories={categories} 
-            onDelete={deleteVendor} 
-            onUpdate={updateVendor} 
+        <VendorForm
+            categories={categories}
+        />
+        <VendorList
+            vendors={vendors}
+            categories={categories}
         />
         </>
-    )
-}
+    );
+    }
 
 export default VendorPage
