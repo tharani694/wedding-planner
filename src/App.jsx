@@ -61,20 +61,6 @@ function App() {
       .catch((err) => console.error("Failed to fetch vendors", err))
   }, [])
 
-  // const filteredGuests = guests.filter((guest) =>
-  //   guest.name.toLowerCase().includes(search.toLowerCase())
-  // )
-
-  const filteredGuests = useMemo(() => {
-    return guests.filter((guest) =>
-      guest.name.toLowerCase().includes(debouncedSearch.toLowerCase())
-    );
-  }, [guests, debouncedSearch]);
-
-  // function addGuest(guest) {
-  //   setGuests([...guests, guest])
-  // }
-
   const addGuest = async(guest) => {
     const res = await fetch("http://localhost:4000/guests", {
       method: "POST",
@@ -85,49 +71,6 @@ function App() {
     const saved = await res.json();
     setGuests((prev) => [...prev, saved]);
   }
-
-  // function deleteGuest(id) {
-  //   setGuests((prev) => prev.filter((g) => g.id !== id))
-  //   console.log(guests)
-  // }
-
-  const deleteGuest = async(id) => {
-    await fetch(`http://localhost:4000/guests/${id}`, {
-      method: "DELETE",
-    });
-
-    setGuests((prev) => prev.filter((g) => g.id !== id));
-  }
-
-  // function updateGuest(id, updateFields) {
-  //   setGuests((prev) =>
-  //     prev.map((guest) =>
-  //       guest.id == id ? { ...guest , ...updateFields} : guest
-  //     )
-  //   )
-  // }
-
-  const updateGuest = async(id, updateFields) => {
-    await fetch(`http://localhost:4000/guests/${id}`, {
-      method: "PUT",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify(updateFields),
-    });
-
-    setGuests((prev) =>
-      prev.map((g) => (g.id === id ? { ...g, ...updateFields } : g))
-    );
-  }
-
-  const addVendorFromProfile = async (profileId) => {
-    const res = await fetch(`http://localhost:4000/vendors/from-profile/${profileId}`, {
-      method: "POST"
-    });
-  
-    const newVendor = await res.json();
-    setVendors(prev => [...prev, newVendor]);
-  };
-
 
   return (
     <BrowserRouter>
@@ -150,9 +93,6 @@ function App() {
                   />
                 </div>
                 <GuestList
-                  guests={filteredGuests}
-                  onDelete={deleteGuest}
-                  onUpdate={updateGuest}
                   search={debouncedSearch}
                 />
               </>
@@ -161,12 +101,12 @@ function App() {
           <Route path="budget" element={<BudgetPage budget={budget} setBudget={setBudget} />} />
           <Route
             path="marketplace"
-            element={<VendorProfilesPage onAdd={addVendorFromProfile} categories={budget.categories} />}
+            element={<VendorProfilesPage />}
           />
           <Route 
             path="vendors" 
             element={
-              <VendorPage categories={budget.categories} />
+              <VendorPage />
             } 
           />
         </Route>
@@ -176,79 +116,3 @@ function App() {
 }
 
 export default App
-
-
-// function App() {
-//   const [guests, setGuests] = useState(() => {
-//     const saved = localStorage.getItem('guests')
-//     return saved ? JSON.parse(saved) : []
-//   })
-//   const [search, setSearch] = useState("")
-//   const [debouncedSearch, setDebouncedSearch] = useState("")
-
-//   useEffect(() => {
-//     localStorage.setItem("guests", JSON.stringify(guests))
-//   }, [guests])
-
-//   useEffect(() => {
-//     const timer = setTimeout(() => {
-//       setDebouncedSearch(search)
-//     }, 300)
-//     return () => clearTimeout(timer)
-//   }, [search])
-
-//   // const filteredGuests = guests.filter((guest) => 
-//   //   guest.name.toLowerCase().includes(search.toLowerCase())
-//   // )
-
-//   const filteredGuests = useMemo(() => {
-//     return guests.filter((guest) => 
-//       guest.name.toLowerCase().includes(debouncedSearch.toLowerCase())
-//     )
-//   }, [guests, debouncedSearch])
-
-//   function addGuest(guest) {
-//     setGuests([...guests, guest])
-//   }
-
-//   function deleteGuest(id) {
-//     setGuests((prev) => prev.filter((g) => g.id !== id))
-//     console.log(guests)
-//   }
-
-//   function updateGuest(id, updateFields) {
-//     setGuests((prev) => 
-//       prev.map((guest) => 
-//         guest.id == id ? { ...guest , ...updateFields} : guest
-//       )
-//     )
-//   }
-
-
-//   return (
-//     <>
-//       <div style={{ padding: 20 }}>
-//         <h1> Wedding Planner </h1>
-//         <Dashboard guests={guests}/>
-//         <h2> Add Guests </h2>
-//         <GuestForm onAddGuest={addGuest} />
-//         <div style={{ marginBottom: 10 }}>
-//           <input
-//             placeholder="Search guest by name..."
-//             value={search}
-//             onChange={(e) => setSearch(e.target.value)}
-//           />
-//         </div>
-//         <h2> Guest List </h2>
-//         <GuestList
-//           guests={filteredGuests}
-//           onDelete={deleteGuest}
-//           onUpdate={updateGuest}
-//           search={debouncedSearch}
-//         />
-//       </div>
-//     </>
-//   );
-// }
-
-// export default App
