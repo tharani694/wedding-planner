@@ -26,56 +26,6 @@ const startGraphQL = async() => {
 app.listen(4000, () => {
     console.log("Backend running on http://localhost:4000");
   })
-
-
-
-// BUDGET BLOCK
-
-// app.get("/budget", (req, res) => {
-//     res.json(budget);
-//   });
-
-// app.put("/budget/total", (req, res) => {
-//     const { total } = req.body
-//     budget.total = Number(total || 0)
-//     res.json(budget)
-// })
-
-// app.post("/budget/categories", (req, res) => {
-//     const { name, allocated } = req.body
-//     if(!name) {
-//         return res.status(400).json({ error: "Name cannot be empty"})
-//     }
-
-//     const category = {
-//         id: Date.now(),
-//         name,
-//         allocated: Number(allocated || 0),
-//         spent: 0
-//     }
-
-//     budget.categories.push(category)
-//     res.status(201).json(category)
-// }) 
-
-
-// app.put("/budget/categories/:id", (req, res) => {
-//     const id = Number(req.params.id)
-//     budget.categories = budget.categories.map(c =>
-//         c.id === id ? { ...c, ...req.body } : c
-//       );
-    
-//     res.json({ success: true });
-// })
-
-// app.delete("/budget/categories/:id", (req, res) => {
-//     const id = Number(req.params.id);
-//     budget.categories = budget.categories.filter(c => c.id !== id);
-//     res.sendStatus(204);
-// });
-
-// VENDOR PROFILES
-
   let vendorProfiles = [
     {
       id: 1,
