@@ -3,7 +3,7 @@ import { useMutation } from "@apollo/client";
 import { ADD_VENDOR } from "../../graphql/mutations";
 import { GET_VENDORS } from "../../graphql/queries";
 
-function VendorForm({ categories }) {
+const VendorForm = ({ categories }) => {
   const [name, setName] = useState("");
   const [categoryId, setCategoryId] = useState("");
   const [categoryName, setCategoryName] = useState("")
@@ -42,23 +42,51 @@ function VendorForm({ categories }) {
   }
 
   return (
-    <div>
+    <div className="card">
       <h3>Add Vendor</h3>
+      <label>
+        <input
+          placeholder="Eg: Flower Decor Co."
+          value={name}
+          onChange={(e) => setName(e.target.value)}
+        />
+      </label>
 
-      <input
-        placeholder="Vendor name"
-        value={name}
-        onChange={(e) => setName(e.target.value)}
-      />
+      <label>
+        Category
+        <select
+          value={categoryId}
+          onChange={(e) => {
+            const id = e.target.value;
+            setCategoryId(id);
+            setCategoryName(categories.find((c) => c.id == id)?.name || "");
+          }}
+        >
+          <option value="">Select category</option>
+          {categories.map((c) => (
+            <option key={c.id} value={c.id}>
+              {c.name}
+            </option>
+          ))}
+        </select>
+      </label>
 
-      <input
-        placeholder="Price"
-        value={price}
-        onChange={(e) => setPrice(e.target.value)}
-        type="number"
-      />
+      <label>
+        Price (₹)
+        <input
+          value={price}
+          onChange={(e) => setPrice(e.target.value)}
+        />
+      </label>
 
-      <select value={categoryId} onChange={(e) => setCategoryId(e.target.value)}>
+      <button disabled={loading || !name || !price || !categoryId}>
+        {loading ? "Adding..." : "Add Vendor"}
+      </button>
+
+      {/* <select
+        value={categoryId}
+        onChange={(e) => setCategoryId(e.target.value)}
+      >
         <option value="">Select category</option>
         {categories.map((c) => (
           <option key={c.id} value={c.id}>
@@ -71,7 +99,7 @@ function VendorForm({ categories }) {
         {loading ? "Adding..." : "Add Vendor"}
       </button>
 
-      {error && <p style={{ color: "red" }}>Error: {error.message}</p>}
+      {error && <p style={{ color: "red" }}>Error: {error.message}</p>} */}
     </div>
   );
 }

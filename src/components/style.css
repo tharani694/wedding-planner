@@ -1,0 +1,29 @@
+.vendor-grid {
+    display: grid;
+    grid-template-columns: 320px 1fr;
+    gap: 24px;
+  }
+  .vendor-page {
+    padding: 24px;
+    background: #f8fafc;          /* soft dashboard background */
+    min-height: 100vh;
+  }
+
+  .card {
+    background: #fff;
+    border-radius: 8px;
+    padding: 16px;
+    box-shadow: 0 2px 8px rgba(0,0,0,.06);
+  }
+  
+  label {
+    display: flex;
+    flex-direction: column;
+    margin-bottom: 12px;
+  }
+  
+  input, select {
+    padding: 8px;
+    border-radius: 4px;
+    border: 1px solid #ccc;
+  }

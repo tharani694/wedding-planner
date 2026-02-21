@@ -1,9 +1,27 @@
-import { useMutation, useQuery } from "@apollo/client"
-import { useState } from "react"
-import { GET_GUESTS } from "../../graphql/queries"
+import { useMutation, useQuery } from "@apollo/client";
+import { useState } from "react";
+import {
+  Card,
+  CardContent,
+  Typography,
+  IconButton,
+  Chip,
+  Stack,
+  TextField,
+  Button,
+  MenuItem,
+  Box,
+  Dialog,
+  DialogTitle,
+  DialogContent,
+  DialogActions,
+} from "@mui/material";
+import DeleteIcon from "@mui/icons-material/Delete";
+import EditIcon from "@mui/icons-material/Edit";
+import { GET_GUESTS } from "../../graphql/queries";
 import { DELETE_GUEST, UPDATE_GUEST } from "../../graphql/mutations";
 
-function GuestList({ search }) {
+const GuestList = ({ guests }) => {
     const { data, loading, error } = useQuery(GET_GUESTS);
 
     const [deleteGuest] = useMutation(DELETE_GUEST , {
@@ -14,91 +32,131 @@ function GuestList({ search }) {
         refetchQueries: [{ query: GET_GUESTS, fetchPolicy: 'network-only' }]
     })
 
-    const guests = data?.guests || []
+    const [open, setOpen] = useState(false)
+    const [selectedGuest, setSelectedGuest] = useState(null)
 
-    const [editingId, setEditingId] = useState(null)
     const [editedName, setEditedName] = useState("")
     const [editedPhone, setEditedPhone] = useState("")
-    const [editedRsvp, setEditedRsvp] = useState("Yes")
+    const [editedRsvp, setEditedRsvp] = useState("Attending")
 
-    if(loading) return <p>Loading Guests ...</p>
-    if(error) return <p>Error Loading guests</p>
-    if (guests.length === 0) return <p>No Guests yet!</p>;
-
-
-    function startEdit(guest) {
-        setEditingId(guest.id)
+    const handleEditOpen = (guest) => {
+        setSelectedGuest(guest)
         setEditedName(guest.name)
         setEditedPhone(guest.phone)
         setEditedRsvp(guest.rsvp)
+        setOpen(true)
     }
 
-    function saveEdit(id) {
-        updateGuest({
+    const handleClose = () => {
+        setOpen(false)
+        setSelectedGuest(null)
+    }
+
+    const handleSave = async () => {
+        await updateGuest({
             variables: {
                 input: {
-                    id,
+                    id: selectedGuest?.id,
                     name: editedName,
                     phone: editedPhone,
-                    rsvp: editedRsvp
+                    rsvp: editedRsvp,
                 }
             }
         })
-        setEditingId(null)
+        handleClose()
     }
+    
+    if (loading) return <Typography>Loading Guests...</Typography>;
+    if (error) return <Typography>Error loading guests</Typography>;
 
-    function highLight(text, query) {
-        if(!query) return text
-        const parts = text.split(new RegExp(`(${query})`, "gi"))
-        return parts.map((p, i) => 
-            p.toLowerCase() === query.toLowerCase() ? (
-                <mark key={i}>{p}</mark>
-            ) : ( p )
-        )
-    }
+    const getChipColor = (rsvp) => {
+        if (rsvp === "Attending") return "success";
+        if (rsvp === "Not Attending") return "error";
+        return "warning";
+    };
 
-    const filteredGuests = guests.filter((guest) =>
-        guest.name.toLowerCase().includes(search.toLowerCase())
-      );
+  return (
+    <>
+    <Stack spacing={2}>
+      {guests.map((guest) => (
+        <Card key={guest?.id} sx={{ borderRadius: 2 }}>
+          <CardContent>
+              <Box
+                display="flex"
+                justifyContent="space-between"
+                alignItems="center"
+                maxHeight="40px"
+              >
+                <Box>
+                  <Typography variant="h6">{guest.name}</Typography>
+                  <Typography variant="body2" color="text.secondary">
+                    {guest.phone}
+                  </Typography>
+                </Box>
 
-    return (
-        <>
-        <ul>
-            {filteredGuests.map((guest) => (
-                <li key={guest.id} style={{ marginBottom: 8 }}>
-                    {editingId === guest.id ? 
-                    (
-                        <>
-                        <input value={editedName} onChange={(e) => setEditedName(e.target.value)} />
-                        <input value={editedPhone} onChange={(e) => setEditedPhone(e.target.value)} />
-                        <select value={editedRsvp} onChange={(e) => setEditedRsvp(e.target.value)}> 
-                            <option>Yes</option>
-                            <option>No</option>
-                            <option>Maybe</option>
-                        </select>
-                        <button onClick={() => saveEdit(guest.id)}>Save</button>
-                        </>
-                    ) : 
-                    (
-                        <>
-                        <strong>{highLight(guest.name, search)}</strong> - ({guest.phone}) - RSVP : {guest.rsvp}
-                        <button
-                        onClick={() => startEdit(guest)}
-                        style={{marginLeft: 10}}
-                        >
-                            Edit
-                        </button>
-                        <button 
-                        onClick={() => deleteGuest({variables : {id: guest.id }})} 
-                        style={{marginLeft: 10}}>
-                            Delete
-                        </button>
-                        </>
-                    )}
-                </li>)
-            )}
-        </ul>
-        </>
-    )
+                <Stack direction="row" spacing={1} alignItems="center">
+                  <Chip
+                    label={guest.rsvp}
+                    color={getChipColor(guest.rsvp)}
+                  />
+
+                  <IconButton
+                    onClick={() => { handleEditOpen(guest)
+                    }}
+                  >
+                    <EditIcon />
+                  </IconButton>
+
+                  <IconButton
+                    color="error"
+                    onClick={() =>
+                      deleteGuest({ variables: { id: guest?.id } })
+                    }
+                  >
+                    <DeleteIcon />
+                  </IconButton>
+                </Stack>
+              </Box>
+          </CardContent>
+        </Card>
+      ))}
+    </Stack>
+    <Dialog open={open} onClose={handleClose} fullWidth maxWidth="sm">
+        <DialogTitle>Edit Guest</DialogTitle>
+        <DialogContent sx={{mt: 1}}>
+            <Stack spacing={3}>
+                <TextField
+                    label="Name"
+                    value={editedName}
+                    onChange={(e) => setEditedName(e.target.value)}
+                    fullWidth
+                    required
+                />
+                <TextField
+                    label="Phone"
+                    value={editedPhone}
+                    onChange={(e) => setEditedPhone(e.target.value)}
+                    fullWidth
+                />
+                <TextField
+                    select
+                    label="RSVP"
+                    value={editedRsvp}
+                    onChange={(e) => setEditedRsvp(e.target.value)}
+                    fullWidth
+                >
+                    <MenuItem value="Attending">Attending</MenuItem>
+                    <MenuItem value="Not Attending">Not Attending</MenuItem>
+                    <MenuItem value="Maybe">Maybe</MenuItem>
+                </TextField>
+                </Stack>
+            </DialogContent>
+                <DialogActions sx={{px: 3, pb: 2}}>
+                    <Button onClick={handleClose}>Cancel</Button>
+                    <Button variant="contained" onClick={handleSave}>Save</Button>
+                </DialogActions>
+        </Dialog>
+    </>
+  );
 }
 export default GuestList;
