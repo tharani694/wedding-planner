@@ -2,8 +2,8 @@ import { useQuery } from "@apollo/client";
 import { GET_BUDGET } from "../../graphql/queries";
 import CategoryItem from "./CategoryItem";
 
-function CategoryList({ categories }) {
-  if (!categories.length) return <p>No categories yet</p>;
+const CategoryList = ({ categories }) => {
+  if (!categories.length) return <p>Not Attending categories yet</p>;
 
   return (
     <ul>
