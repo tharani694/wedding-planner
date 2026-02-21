@@ -2,7 +2,7 @@ import { useQuery, useMutation } from "@apollo/client";
 import { GET_VENDORS } from "../../graphql/queries";
 import { DELETE_VENDOR, UPDATE_VENDOR } from "../../graphql/mutations";
 
-function VendorList({ categories }) {
+const VendorList = ({ categories }) => {
   const { data, loading, error } = useQuery(GET_VENDORS);
 
   const [deleteVendor] = useMutation(DELETE_VENDOR, {
@@ -21,7 +21,7 @@ function VendorList({ categories }) {
   const getCategoryName = (id) =>
     categories.find((c) => c.id === id)?.name || "Unknown";
 
-  if (!vendors.length) return <p>No Vendors yet!</p>;
+  if (!vendors.length) return <p>Not Attending Vendors yet!</p>;
 
   return (
     <ul>
