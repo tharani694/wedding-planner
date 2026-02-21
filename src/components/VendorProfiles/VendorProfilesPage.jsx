@@ -3,8 +3,7 @@ import { useQuery, useMutation } from "@apollo/client";
 import { GET_VENDOR_PROFILES, GET_BUDGET } from "../../graphql/queries";
 import { ADD_VENDOR_FROM_PROFILE } from "../../graphql/mutations";
 
-function VendorProfilesPage() {
-  console.log("Inside profiles")
+const VendorProfilesPage = () => {
   const [search, setSearch] = useState("");
   const [categoryFilter, setCategoryFilter] = useState("");
   const [sort, setSort] = useState("");
@@ -69,7 +68,7 @@ function VendorProfilesPage() {
       </select>
 
       <select onChange={e => setSort(e.target.value)}>
-        <option value="">No sort</option>
+        <option value="">Not Attending sort</option>
         <option value="rating">Sort by rating</option>
       </select>
 
