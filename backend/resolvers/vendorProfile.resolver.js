@@ -1,60 +1,73 @@
-module.exports = (data) => ({
-    Query: {
-      vendorProfiles: () => {
-        return data.vendorProfiles.map(p => {
-          if (!p.categoryId) {
-            const match = data.budget.categories.find(c =>
-              p.categoryName?.toLowerCase() === c.name.toLowerCase()
-            );
-            return { ...p, categoryId: match?.id };
-          }
-          return p;
-        });
-      }
-    },
-  
-    Mutation: {
-      seedVendorProfiles: () => {
-        data.vendorProfiles = data.vendorProfiles.map(p => ({
-          ...p,
-          categoryId: data.budget.categories.find(
-            c => c.name === p.categoryName
-          )?.id
-        }));
-  
-        return data.vendorProfiles;
-      },
-  
-      addVendorFromProfile: (_, { profileId }) => {
-        const profile = data.vendorProfiles.find(
-          p => p.id === Number(profileId)
-        );
-  
-        if (!profile) {
-          throw new Error("Profile not found");
-        }
-  
-        const matchedCategory = data.budget.categories.find(
-          c => c.name.toLowerCase() === profile.categoryName.toLowerCase()
-        );
-  
-        const exists = data.vendors.find(v => v.name === profile.name);
-        if (exists) {
-          throw new Error("Vendor already added");
-        }
-  
-        const vendor = {
-          id: Date.now(),
-          name: profile.name,
-          categoryId: matchedCategory?.id,
-          categoryName: profile.categoryName,
-          price: profile.price,
-          status: "lead"
-        };
-  
-        data.vendors.push(vendor);
-        return vendor;
-      }
+import VendorProfile from "../models/VendorProfile.js";
+import Vendor from "../models/Vendor.js";
+import BudgetCategory from "../models/BudgetCategory.js";
+import mongoose from "mongoose";
+const TEMP_USER_ID = new mongoose.Types.ObjectId("65f000000000000000000001");
+
+export default {
+  Query: {
+    vendorProfiles: async (_, __, { user }) => {
+      // if (!user) throw new Error("Unauthorized");
+
+      const profiles = await VendorProfile.find({
+        userId: TEMP_USER_ID
+      });
+      return profiles;
     }
-  });
-  
+  },
+
+  Mutation: {
+    seedVendorProfiles: async (_, __, { user }) => {
+      // if (!user) throw new Error("Unauthorized");
+
+      const profiles = await VendorProfile.find({
+        userId: TEMP_USER_ID
+      });
+
+      for (const profile of profiles) {
+        if (!profile.categoryId && profile.categoryName) {
+          const match = await BudgetCategory.findOne({
+            name: new RegExp(`^${profile.categoryName}$`, "i"),
+            userId: TEMP_USER_ID
+          });
+
+          if (match) {
+            profile.categoryId = match._id;
+            await profile.save();
+          }
+        }
+      }
+      return profiles;
+    },
+
+    addVendorFromProfile: async (_, { profileId, subEventId }, { user }) => {
+      // if (!user) throw new Error("Unauthorized");
+
+      const profile = await VendorProfile.findOne({
+        _id: profileId,
+        userId: TEMP_USER_ID
+      });
+
+      if (!profile) throw new Error("Profile not found");
+
+      const exists = await Vendor.findOne({
+        name: profile.name,
+        subEventId,
+        userId: TEMP_USER_ID
+      });
+
+      if (exists) throw new Error("Vendor already added");
+
+      const vendor = new Vendor({
+        name: profile.name,
+        categoryId: profile.categoryId,
+        price: profile.price,
+        subEventId,
+        userId: TEMP_USER_ID,
+        status: "lead"
+      });
+
+      return await vendor.save();
+    }
+  }
+};
