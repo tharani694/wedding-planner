@@ -2,60 +2,89 @@ import { useState } from "react";
 import { useMutation } from "@apollo/client";
 import { ADD_GUEST } from "../../graphql/mutations";
 import { GET_GUESTS } from "../../graphql/queries";
+import {
+  Card,
+  CardContent,
+  Typography,
+  TextField,
+  Button,
+  MenuItem,
+  Stack
+} from "@mui/material";
 
-function GuestForm() {
-    const [name, setName] = useState("");
-    const [phone, setPhone] = useState("");
-    const [rsvp, setRsvp] = useState("Yes");
-    const [addGuest] = useMutation(ADD_GUEST, {
-        refetchQueries: [{ query: GET_GUESTS, fetchPolicy: 'network-only' }],
+const GuestForm = () => {
+  const [name, setName] = useState("");
+  const [phone, setPhone] = useState("");
+  const [rsvp, setRsvp] = useState("Attending");
+
+  const [addGuest, { loading }] = useMutation(ADD_GUEST, {
+    refetchQueries: [{ query: GET_GUESTS }],
+  });
+
+  const handleSubmit = async (e) => {
+    e.preventDefault();
+    if (!name.trim()) return;
+
+    await addGuest({
+      variables: {
+        input: { name, phone, rsvp },
+      },
     });
-    
-    const handleSubmit = async(e) => {
-        e.preventDefault();
 
-        if(!name.trim()) return;
+    setName("");
+    setPhone("");
+    setRsvp("Attending");
+  };
 
-    try {
-        await addGuest({
-            variables: {
-                input: {
-                    name,
-                    phone, 
-                    rsvp
-                }
-            }
-        })
-        setName("");
-        setPhone("");
-        setRsvp("Yes");
-    } catch (err) {
-            console.error(err)
-        }
-    }
+  return (
+    <Card sx={{ maxWidth: "500", mx: "auto", mb: 4, borderRadius: 3 }}>
+      <CardContent sx={{p: 3}}>
+        <Typography variant="h6" mb={2} fontWeight="bold">
+          Add Guest
+        </Typography>
 
-    return (
-        <form onSubmit={handleSubmit} style ={{ marginBottom: 20 }}>
-            <input
-             placeholder="Guest Name"
-             value={name}
-             onChange={(e) => setName(e.target.value)}
-             />
+        <form onSubmit={handleSubmit}>
+          <Stack spacing={3}>
+            <TextField
+              label="Guest Name"
+              value={name}
+              onChange={(e) => setName(e.target.value)}
+              required
+              fullWidth
+            />
 
-             <input
-             placeholder="Phone Number"
-             value={phone}
-             onChange={(e) => setPhone(e.target.value)}  
-             />
-             <select value={rsvp} onChange={(e) => setRsvp(e.target.value)}>
-                <option value ="Yes">Attending</option>
-                <option value ="No">Not Attending</option>
-                <option value ="Maybe">Maybe</option>
-             </select>
+            <TextField
+              label="Phone Number"
+              value={phone}
+              onChange={(e) => setPhone(e.target.value)}
+              fullWidth
+            />
 
-             <button type="submit">Add Guest</button>
+            <TextField
+              select
+              label="RSVP Status"
+              value={rsvp}
+              onChange={(e) => setRsvp(e.target.value)}
+              fullWidth
+            >
+              <MenuItem value="Attending">Attending</MenuItem>
+              <MenuItem value="Not Attending">Not Attending</MenuItem>
+              <MenuItem value="Maybe">Maybe</MenuItem>
+            </TextField>
+
+            <Button
+              type="submit"
+              variant="contained"
+              size="large"
+              disabled={loading}
+            >
+              {loading ? "Adding..." : "Add Guest"}
+            </Button>
+          </Stack>
         </form>
-    )
+      </CardContent>
+    </Card>
+  );
 }
 
 export default GuestForm;
