@@ -1,34 +1,40 @@
 const { gql } = require('apollo-server-express')
 
 module.exports = gql`
-    type Vendor {
-        id: ID!
-        name: String!
-        categoryId: ID
-        categoryName: String
-        price: Int
-        status: String
+enum VendorStatus {
+    lead
+    booked
+    paid
+    cancelled
     }
 
-    extend type Query {
-        vendors: [Vendor]
-    }
+  type Vendor {
+    id: ID!
+    subEventId: ID!
+    name: String!
+    categoryId: ID
+    price: Int
+    status: VendorStatus
+  }
 
-    input AddVendorInput {
-        name: String!
-        categoryId: ID
-        categoryName: String
-        price: Int
-    }
+  extend type Query {
+    vendors(subEventId: ID!): [Vendor]
+  }
 
-    input UpdateVendorInput {
-        id: ID!
-        status: String!
-    }
+  input AddVendorInput {
+    name: String!
+    categoryId: ID
+    price: Int
+  }
 
-    extend type Mutation {
-        addVendor(input: AddVendorInput!): Vendor
-        deleteVendor(id: ID!): Vendor
-        updateVendor(input: UpdateVendorInput!): Vendor
-    }
+  input UpdateVendorInput {
+    id: ID!
+    status: VendorStatus!
+  }
+
+  extend type Mutation {
+    addVendor(subEventId: ID!, input: AddVendorInput!): Vendor
+    deleteVendor(id: ID!): Boolean
+    updateVendor(input: UpdateVendorInput!): Vendor
+  }
 `

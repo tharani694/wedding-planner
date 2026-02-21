@@ -1,6 +1,7 @@
 const { gql } = require('apollo-server-express')
 
 module.exports = gql`
+
   type VendorProfile {
     id: ID!
     name: String!
@@ -18,7 +19,6 @@ module.exports = gql`
 
   extend type Mutation {
     seedVendorProfiles: [VendorProfile]
-    addVendorFromProfile(profileId: ID!): Vendor
+    addVendorFromProfile(profileId: ID!, subEventId: ID!): Vendor
   }
-`;
-
+`
