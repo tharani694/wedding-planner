@@ -3,7 +3,7 @@ const vendor = require('./vendor.resolver')
 const budget = require('./budget.resolver')
 const vendorProfile = require('./vendorProfile.resolver')
 
-function mergeResolvers(resolvers) {
+const mergeResolvers = (resolvers) => {
     const result = { Query: {}, Mutation: {} }
   
     for (const r of resolvers) {
