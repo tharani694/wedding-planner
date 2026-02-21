@@ -1,22 +1,31 @@
-const guest = require('./guest.resolver')
-const vendor = require('./vendor.resolver')
-const budget = require('./budget.resolver')
-const vendorProfile = require('./vendorProfile.resolver')
+import guest from "./guest.resolver.js";
+import vendor from "./vendor.resolver.js";
+import budget from "./budget.resolver.js";
+import vendorProfile from "./vendorProfile.resolver.js";
+import event from "./event.resolver.js";
 
 const mergeResolvers = (resolvers) => {
-    const result = { Query: {}, Mutation: {} }
-  
-    for (const r of resolvers) {
-      if (r.Query) Object.assign(result.Query, r.Query)
-      if (r.Mutation) Object.assign(result.Mutation, r.Mutation)
-    }
-  
-    return result
+  const result = { Query: {}, Mutation: {} };
+
+  for (const r of resolvers) {
+    if (r.Query) Object.assign(result.Query, r.Query);
+    if (r.Mutation) Object.assign(result.Mutation, r.Mutation);
+    Object.keys(r).forEach(key => {
+      if (!["Query", "Mutation"].includes(key)) {
+        result[key] = {
+          ...(result[key] || {}),
+          ...r[key]
+        };
+      }
+    });
   }
-  
-  module.exports = (data) => mergeResolvers([
-    guest(data),
-    vendor(data),
-    budget(data),
-    vendorProfile(data)
-])
+  return result;
+};
+
+export default mergeResolvers([
+  event,
+  guest,
+  vendor,
+  budget,
+  vendorProfile
+]);
