@@ -2,7 +2,7 @@ import { NavLink, Outlet } from "react-router-dom";
 import { useQuery } from "@apollo/client";
 import { NAV_STATS_QUERY } from "../graphql/queries";
 
-function Layout() {
+const Layout = () => {
   const { data, loading, error } = useQuery(NAV_STATS_QUERY);
 
   const guestCount = data?.guests?.length || 0;
