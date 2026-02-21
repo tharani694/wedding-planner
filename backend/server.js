@@ -1,28 +1,34 @@
-const express = require("express");
-const cors = require("cors");
+import express from "express";
+import dotenv from "dotenv";
+import cors from "cors";
+import { ApolloServer } from "apollo-server-express";
+import typeDefs from "./schema/index.js";
+import resolvers from "./resolvers/index.js";
+import connectDB from "./config/db.js";
+
+dotenv.config();
+connectDB();
 
 const app = express();
-const { ApolloServer } = require("apollo-server-express");
-const createResolvers = require('./resolvers/index')
-const typeDef = require('./schema')
-const data = require('./dataStore')
-
 app.use(cors());
 
+const startServer = async () => {
+  const server = new ApolloServer({
+    typeDefs,
+    resolvers,
+    context: ({ req }) => {
+      // attach user from auth middleware if you have one
+      return { user: req.user || null };
+    },
+  });
 
-const startGraphQL = async() => {
-    const server = new ApolloServer({
-      typeDefs: typeDef,
-      resolvers: createResolvers(data),
-    });
-  
-    await server.start();
-    server.applyMiddleware({ app })
-    console.log(`GraphQL ready at http://localhost:4000${server.graphqlPath}`);
-  }
-  
-  startGraphQL();
+  await server.start();
+  server.applyMiddleware({ app });
 
-app.listen(4000, () => {
-    console.log("Backend running on http://localhost:4000");
-  })
+  app.listen(process.env.PORT || 4000, () => {
+    console.log(
+      `🚀 GraphQL ready at http://localhost:4000${server.graphqlPath}`
+    );
+  });
+};
+startServer();
