@@ -2,8 +2,9 @@ import { useState } from "react";
 import { UPDATE_BUDGET_TOTAL } from "../../graphql/mutations";
 import { GET_BUDGET } from "../../graphql/queries"
 import { useMutation } from "@apollo/client";
+import { TextField, Button, Stack } from "@mui/material";
 
-function BudgetForm() {
+const BudgetForm = () => {
   const [total, setTotal] = useState("");
   const [updateBudgetTotal, { loading, error }] = useMutation(
     UPDATE_BUDGET_TOTAL,
@@ -29,21 +30,25 @@ function BudgetForm() {
     }
   }
 
-
-
   return (
-    <div>
-      <input
-        placeholder="Total Budget"
+    <Stack spacing={2}>
+      <TextField
+        label="Total Budget"
+        type="number"
         value={total}
-        onChange={e => setTotal(e.target.value)}
+        onChange={(e) => setTotal(e.target.value)}
+        size="small"
       />
-      <button onClick={handleSubmit} disabled={loading}>
+      <Button
+        variant="contained"
+        onClick={handleSubmit}
+        disabled={loading}
+        size="small"
+      >
         {loading ? "Saving..." : "Set Total"}
-      </button>
-      {error && <p style={{ color: "red" }}>Failed to update budget</p>}
-    </div>
-  );
+      </Button>
+    </Stack>
+  )
 }
 
 export default BudgetForm;
