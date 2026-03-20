@@ -178,16 +178,23 @@ Include 15-20 items with realistic due dates relative to the wedding date. Retur
     aiBudgetAdvice: async (_, __, { user }) => {
       if (!user) throw new Error("Not authenticated");
 
-      const subEvents = await SubEvent.find({ userId: user._id });
-      const budgets = await Budget.find({ subEventId: { $in: subEvents.map((s) => s._id) }, userId: user._id });
-      const categories = await BudgetCategory.find({ budgetId: { $in: budgets.map((b) => b._id) }, userId: user._id });
+      // Find all budgets for this user (both direct and via subEvents)
+      const allBudgets = await Budget.find({ userId: user._id });
+      const categories = await BudgetCategory.find({
+        budgetId: { $in: allBudgets.map((b) => b._id) },
+        userId: user._id,
+      });
       const vendors = await Vendor.find({ userId: user._id });
 
       const spent = categories.reduce((s, c) => s + (c.spent || 0), 0);
       const allocated = categories.reduce((s, c) => s + (c.allocated || 0), 0);
 
+      if (categories.length === 0 && vendors.length === 0) {
+        return "Add some budget categories and vendors first, then I can give you personalised advice!";
+      }
+
       const prompt = `Wedding budget analysis for a couple in India:
-Total budget: ₹${user.totalBudget}, Allocated: ₹${allocated}, Spent: ₹${spent}
+Total budget set: ₹${user.totalBudget || 0}, Allocated across categories: ₹${allocated}, Spent so far: ₹${spent}
 Categories: ${JSON.stringify(categories.map((c) => ({ name: c.name, allocated: c.allocated, spent: c.spent })))}
 Vendors: ${JSON.stringify(vendors.map((v) => ({ name: v.name, status: v.status, price: v.price })))}
 

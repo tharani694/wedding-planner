@@ -17,16 +17,18 @@ export default {
     vendorProfiles: async () => MARKETPLACE_PROFILES,
   },
   Mutation: {
-    addVendorFromProfile: async (_, { profileId }, { user }) => {
+    addVendorFromProfile: async (_, { profileId, subEventId }, { user }) => {
       if (!user) throw new Error("Not authenticated");
       const profile = MARKETPLACE_PROFILES.find((p) => p.id === profileId);
       if (!profile) throw new Error("Profile not found");
-      const exists = await Vendor.findOne({ name: profile.name, userId: user._id });
-      if (exists) throw new Error("Vendor already added");
+      // Allow same vendor in different sub-events, but not duplicate in same sub-event
+      const exists = await Vendor.findOne({ name: profile.name, userId: user._id, subEventId: subEventId || null });
+      if (exists) throw new Error(`${profile.name} is already added to this sub-event`);
       return await Vendor.create({
         name: profile.name,
         price: profile.price,
         userId: user._id,
+        subEventId: subEventId || null,
         status: "lead",
       });
     },

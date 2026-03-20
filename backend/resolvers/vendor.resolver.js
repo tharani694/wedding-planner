@@ -1,5 +1,6 @@
 import Vendor from "../models/Vendor.js";
 import BudgetCategory from "../models/BudgetCategory.js";
+import Budget from "../models/Budget.js";
 import SubEvent from "../models/SubEvent.js";
 
 export default {
@@ -22,14 +23,21 @@ export default {
     },
     updateVendor: async (_, { input }, { user }) => {
       if (!user) throw new Error("Not authenticated");
-      const { id, status } = input;
+      const { id, status, categoryId } = input;
       const vendor = await Vendor.findOne({ _id: id, userId: user._id });
       if (!vendor) throw new Error("Vendor not found");
+
+      // Allow assigning a category at update time (for marketplace vendors)
+      if (categoryId) vendor.categoryId = categoryId;
+
       const oldStatus = vendor.status;
       vendor.status = status;
       await vendor.save();
-      if (vendor.categoryId) {
-        const category = await BudgetCategory.findOne({ _id: vendor.categoryId, userId: user._id });
+
+      // Update budget spent if vendor has a categoryId
+      const activeCategoryId = vendor.categoryId;
+      if (activeCategoryId) {
+        const category = await BudgetCategory.findOne({ _id: activeCategoryId, userId: user._id });
         if (category) {
           const wasCounted = ["booked", "paid"].includes(oldStatus);
           const isCounted = ["booked", "paid"].includes(status);

@@ -8,13 +8,13 @@ export const ME_QUERY = gql`
 
 export const GET_GUESTS = gql`
   query GetGuests($subEventId: ID) {
-    guests(subEventId: $subEventId) { id name phone rsvp dietary tableNumber }
+    guests(subEventId: $subEventId) { id name phone rsvp dietary tableNumber subEventId }
   }
 `;
 
 export const GET_VENDORS = gql`
   query GetVendors($subEventId: ID) {
-    vendors(subEventId: $subEventId) { id name price categoryId status }
+    vendors(subEventId: $subEventId) { id name price categoryId status subEventId }
   }
 `;
 

@@ -13,6 +13,8 @@ import LogoutIcon from "@mui/icons-material/Logout";
 import MenuIcon from "@mui/icons-material/Menu";
 import { useState } from "react";
 
+import AccountCircleIcon from "@mui/icons-material/AccountCircle";
+
 const DRAWER_WIDTH = 240;
 
 const NAV_ITEMS = [
@@ -23,6 +25,7 @@ const NAV_ITEMS = [
   { label: "Marketplace", path: "/marketplace", icon: <StoreIcon /> },
   { label: "Budget", path: "/budget", icon: <AttachMoneyIcon /> },
   { label: "Checklist", path: "/checklist", icon: <ChecklistIcon /> },
+  { label: "Profile", path: "/profile", icon: <AccountCircleIcon /> },
 ];
 
 export default function Layout() {

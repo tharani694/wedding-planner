@@ -64,13 +64,21 @@ export default function AIChatWidget() {
     const userMsg = { role: "user", content: msg };
     setMessages((prev) => [...prev, userMsg]);
 
-    const history = messages.filter((m) => m.role !== "system").map((m) => ({
-      role: m.role, content: m.content,
-    }));
+    // Build history — exclude the initial greeting (index 0) and only include
+    // actual user/assistant exchanges. Claude API requires alternating user/assistant
+    // starting with user.
+    const conversationHistory = messages
+      .slice(1) // skip the initial greeting
+      .filter((m) => m.role === "user" || m.role === "assistant")
+      .map((m) => ({ role: m.role, content: m.content }));
 
-    const { data } = await askAI({ variables: { message: msg, history } });
-    const reply = data?.aiChat || "Sorry, I couldn't process that.";
-    setMessages((prev) => [...prev, { role: "assistant", content: reply }]);
+    try {
+      const { data } = await askAI({ variables: { message: msg, history: conversationHistory } });
+      const reply = data?.aiChat || "I couldn't get a response. Please try again.";
+      setMessages((prev) => [...prev, { role: "assistant", content: reply }]);
+    } catch (err) {
+      setMessages((prev) => [...prev, { role: "assistant", content: "Something went wrong. Make sure your ANTHROPIC_API_KEY is set in backend/.env and restart the server." }]);
+    }
   };
 
   return (

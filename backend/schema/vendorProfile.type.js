@@ -1,4 +1,5 @@
-import { gql } from 'apollo-server-express';
+import { gql } from 'apollo-server-express'
+
 export default gql`
 
   type VendorProfile {
@@ -18,6 +19,6 @@ export default gql`
 
   extend type Mutation {
     seedVendorProfiles: [VendorProfile]
-    addVendorFromProfile(profileId: ID!, subEventId: ID!): Vendor
+    addVendorFromProfile(profileId: ID!, subEventId: ID): Vendor
   }
 `

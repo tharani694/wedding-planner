@@ -11,6 +11,7 @@ import VendorProfilesPage from "./components/VendorProfiles/VendorProfilesPage";
 import BudgetPage from "./components/Budget/BudgetPage";
 import ChecklistPage from "./components/Checklist/ChecklistPage";
 import EventsPage from "./components/Events/EventsPage";
+import SubEventPage from "./components/Events/SubEventsPage";
 import ProfilePage from "./components/Profile/ProfilePage";
 import AIChatWidget from "./components/AIChatWidget";
 
@@ -30,6 +31,7 @@ export default function App() {
         <Route path="/" element={<ProtectedRoute><Layout /></ProtectedRoute>}>
           <Route index element={<Dashboard />} />
           <Route path="events" element={<EventsPage />} />
+          <Route path="events/:eventId/subevents/:subEventId/:subEventName" element={<SubEventPage />} />
           <Route path="guests" element={<GuestPage />} />
           <Route path="vendors" element={<VendorPage />} />
           <Route path="marketplace" element={<VendorProfilesPage />} />

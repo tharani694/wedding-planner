@@ -1,5 +1,6 @@
 import { useState } from "react";
 import { useQuery, useMutation } from "@apollo/client";
+import { useNavigate } from "react-router-dom";
 import { GET_EVENTS } from "../../graphql/queries";
 import { CREATE_EVENT, DELETE_EVENT, CREATE_SUB_EVENT } from "../../graphql/mutations";
 import {
@@ -12,6 +13,7 @@ import EventIcon from "@mui/icons-material/Event";
 import ExpandMoreIcon from "@mui/icons-material/ExpandMore";
 import ExpandLessIcon from "@mui/icons-material/ExpandLess";
 import CalendarMonthIcon from "@mui/icons-material/CalendarMonth";
+import OpenInNewIcon from "@mui/icons-material/OpenInNew";
 
 const EVENT_TYPES = ["Wedding", "Mehendi", "Haldi", "Sangeet", "Reception", "Engagement", "Pre-Wedding", "Other"];
 const TYPE_COLORS = { Wedding: "#e91e63", Mehendi: "#4caf50", Haldi: "#ff9800", Sangeet: "#9c27b0", Reception: "#2196f3", Engagement: "#f44336", "Pre-Wedding": "#00bcd4", Other: "#9e9e9e" };
@@ -21,6 +23,7 @@ function EventCard({ event, onDelete, onAddSubEvent }) {
   const [subForm, setSubForm] = useState(false);
   const [subName, setSubName] = useState("");
   const [subDate, setSubDate] = useState("");
+  const navigate = useNavigate();
 
   return (
     <Paper elevation={0} sx={{ borderRadius: 3, border: "1px solid #eee", overflow: "hidden", mb: 2 }}>
@@ -46,23 +49,26 @@ function EventCard({ event, onDelete, onAddSubEvent }) {
           {event.subEvents?.length > 0 ? (
             <Box sx={{ display: "flex", flexDirection: "column", gap: 1, mb: 2 }}>
               {event.subEvents.map((sub) => (
-                <Box key={sub.id} sx={{ display: "flex", alignItems: "center", gap: 2, p: 1.5, borderRadius: 2, bgcolor: "#fafafa", border: "1px solid #f0f0f0" }}>
+                <Box key={sub.id} onClick={() => navigate(`/events/${event.id}/subevents/${sub.id}/${encodeURIComponent(sub.name)}`)}
+                  sx={{ display: "flex", alignItems: "center", gap: 2, p: 1.5, borderRadius: 2, bgcolor: "#fafafa",
+                    border: "1px solid #f0f0f0", cursor: "pointer", "&:hover": { borderColor: "#e91e63", bgcolor: "#fff9fb" }, transition: "all .15s" }}>
                   <CalendarMonthIcon sx={{ color: "#e91e63", fontSize: 18 }} />
-                  <Box>
+                  <Box sx={{ flex: 1 }}>
                     <Typography variant="body2" sx={{ fontWeight: 600 }}>{sub.name}</Typography>
                     {sub.date && <Typography variant="caption" sx={{ color: "text.secondary" }}>{new Date(sub.date).toLocaleDateString("en-IN", { day: "numeric", month: "long", year: "numeric" })}</Typography>}
                   </Box>
+                  <Chip label="Manage →" size="small" sx={{ bgcolor: "#fce4ec", color: "#e91e63", fontWeight: 600, fontSize: 11, cursor: "pointer" }} />
                 </Box>
               ))}
             </Box>
           ) : (
-            <Typography variant="body2" sx={{ color: "text.secondary", mb: 2, textAlign: "center", py: 1 }}>No sub-events yet</Typography>
+            <Typography variant="body2" sx={{ color: "text.secondary", mb: 2, textAlign: "center", py: 1 }}>No sub-events yet. Add one to start managing guests, vendors and budget.</Typography>
           )}
 
           {subForm ? (
             <Box sx={{ display: "flex", gap: 1, flexWrap: "wrap" }}>
-              <TextField size="small" label="Sub-event name" value={subName} onChange={(e) => setSubName(e.target.value)} sx={{ flex: 1, minWidth: 160 }} />
-              <TextField size="small" label="Date" type="date" value={subDate} onChange={(e) => setSubDate(e.target.value)} InputLabelProps={{ shrink: true }} sx={{ width: 160 }} />
+              <TextField size="small" label="Sub-event name" value={subName} onChange={e => setSubName(e.target.value)} sx={{ flex: 1, minWidth: 160 }} />
+              <TextField size="small" label="Date" type="date" value={subDate} onChange={e => setSubDate(e.target.value)} InputLabelProps={{ shrink: true }} sx={{ width: 160 }} />
               <Button variant="contained" size="small" onClick={() => { onAddSubEvent(event.id, subName, subDate); setSubName(""); setSubDate(""); setSubForm(false); }}
                 disabled={!subName.trim()} sx={{ bgcolor: "#e91e63", borderRadius: 2, textTransform: "none" }}>Add</Button>
               <Button size="small" onClick={() => setSubForm(false)} sx={{ textTransform: "none" }}>Cancel</Button>
