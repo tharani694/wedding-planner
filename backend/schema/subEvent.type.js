@@ -1,6 +1,5 @@
-const { gql } = require("apollo-server-express");
-
-module.exports = gql`
+import { gql } from 'apollo-server-express';
+export default gql`
 
   type SubEvent {
     id: ID!

@@ -1,11 +1,15 @@
-const { gql } = require("apollo-server-express")
-const guestType = require('./guest.type')
-const vendorType = require('./vendor.type')
-const budgetType = require('./budget.type')
-const vendorProfileType = require('./vendorProfile.type')
-const eventType = require('./event.type')
-const subEventType = require('./subEvent.type')
-const { mergeTypeDefs } = require('@graphql-tools/merge')
+import { gql } from "apollo-server-express"
+import { mergeTypeDefs } from '@graphql-tools/merge'
+
+import authType from './auth.type.js'
+import guestType from './guest.type.js'
+import vendorType from './vendor.type.js'
+import budgetType from './budget.type.js'
+import vendorProfileType from './vendorProfile.type.js'
+import eventType from './event.type.js'
+import subEventType from './subEvent.type.js'
+import checklistType from './checklist.type.js'
+import aiType from './ai.type.js'
 
 const base = gql`
   type Query
@@ -14,12 +18,15 @@ const base = gql`
 
 const typeDefs = mergeTypeDefs([
   base,
+  authType,
   eventType,
   guestType,
   vendorType,
   budgetType,
   vendorProfileType,
-  subEventType
+  subEventType,
+  checklistType,
+  aiType,
 ])
 
-module.exports = typeDefs
+export default typeDefs
