@@ -21,18 +21,14 @@ const ALLOWED_ORIGINS = [
 
 const corsOptions = {
   origin: (origin, callback) => {
-    // Allow requests with no origin (curl, mobile apps, Postman)
     if (!origin) return callback(null, true);
-    if (ALLOWED_ORIGINS.includes(origin)) return callback(null, true);
-    callback(null, true); // Allow all in dev — tighten in production
+    callback(null, true);
   },
   credentials: true,
 };
 
 app.use(cors(corsOptions));
 app.use(express.json());
-
-// Health check
 app.get("/health", (_, res) => res.json({ status: "ok" }));
 
 const startServer = async () => {
@@ -45,20 +41,15 @@ const startServer = async () => {
     },
     introspection: true,
     playground: true,
-    cors: {
-      origin: ALLOWED_ORIGINS,
-      credentials: true,
-    },
+    cors: corsOptions,
   });
 
   await server.start();
-  // Let Apollo handle its own CORS so Studio works
   server.applyMiddleware({ app, path: "/graphql", cors: corsOptions });
 
   const PORT = process.env.PORT || 4000;
   app.listen(PORT, () => {
     console.log(`🚀 Server ready at http://localhost:${PORT}${server.graphqlPath}`);
-    console.log(`🎮 Playground: http://localhost:${PORT}/graphql`);
   });
 };
 
