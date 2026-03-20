@@ -1,0 +1,6 @@
+{
+  "rewrites": [{ "source": "/(.*)", "destination": "/" }],
+  "env": {
+    "VITE_GRAPHQL_URL": "https://your-backend.onrender.com/graphql"
+  }
+}

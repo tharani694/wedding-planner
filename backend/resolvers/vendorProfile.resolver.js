@@ -1,73 +1,34 @@
 import VendorProfile from "../models/VendorProfile.js";
 import Vendor from "../models/Vendor.js";
-import BudgetCategory from "../models/BudgetCategory.js";
-import mongoose from "mongoose";
-const TEMP_USER_ID = new mongoose.Types.ObjectId("65f000000000000000000001");
+
+const MARKETPLACE_PROFILES = [
+  { id: "1", name: "Elite Photography", categoryName: "Photography", price: 25000, rating: 4.8, tags: ["premium", "outdoor", "cinematic"], description: "Luxury wedding photography with cinematic films" },
+  { id: "2", name: "Royal Caterers", categoryName: "Catering", price: 800, rating: 4.3, tags: ["veg", "buffet", "budget"], description: "Affordable catering for large weddings" },
+  { id: "3", name: "Dream Decorators", categoryName: "Decor", price: 15000, rating: 4.6, tags: ["stage", "mandap", "floral"], description: "Beautiful wedding stage and decor setups" },
+  { id: "4", name: "Melody Beats DJ", categoryName: "Entertainment", price: 8000, rating: 4.5, tags: ["dj", "live-music", "sound"], description: "Professional DJ and live music for weddings" },
+  { id: "5", name: "Bridal Bliss Makeup", categoryName: "Beauty", price: 12000, rating: 4.9, tags: ["bridal", "airbrush", "HD"], description: "Expert bridal makeup and hair styling" },
+  { id: "6", name: "Golden Frames Video", categoryName: "Videography", price: 18000, rating: 4.7, tags: ["4K", "drone", "highlights"], description: "Cinematic wedding films with drone shots" },
+  { id: "7", name: "Tasty Treats Catering", categoryName: "Catering", price: 500, rating: 4.1, tags: ["veg", "non-veg", "live-counter"], description: "Traditional and fusion cuisines for all budgets" },
+  { id: "8", name: "Flower Power Decor", categoryName: "Decor", price: 20000, rating: 4.8, tags: ["floral", "luxury", "fresh-flowers"], description: "Premium floral decorations and arrangements" },
+];
 
 export default {
   Query: {
-    vendorProfiles: async (_, __, { user }) => {
-      // if (!user) throw new Error("Unauthorized");
-
-      const profiles = await VendorProfile.find({
-        userId: TEMP_USER_ID
-      });
-      return profiles;
-    }
+    vendorProfiles: async () => MARKETPLACE_PROFILES,
   },
-
   Mutation: {
-    seedVendorProfiles: async (_, __, { user }) => {
-      // if (!user) throw new Error("Unauthorized");
-
-      const profiles = await VendorProfile.find({
-        userId: TEMP_USER_ID
-      });
-
-      for (const profile of profiles) {
-        if (!profile.categoryId && profile.categoryName) {
-          const match = await BudgetCategory.findOne({
-            name: new RegExp(`^${profile.categoryName}$`, "i"),
-            userId: TEMP_USER_ID
-          });
-
-          if (match) {
-            profile.categoryId = match._id;
-            await profile.save();
-          }
-        }
-      }
-      return profiles;
-    },
-
-    addVendorFromProfile: async (_, { profileId, subEventId }, { user }) => {
-      // if (!user) throw new Error("Unauthorized");
-
-      const profile = await VendorProfile.findOne({
-        _id: profileId,
-        userId: TEMP_USER_ID
-      });
-
+    addVendorFromProfile: async (_, { profileId }, { user }) => {
+      if (!user) throw new Error("Not authenticated");
+      const profile = MARKETPLACE_PROFILES.find((p) => p.id === profileId);
       if (!profile) throw new Error("Profile not found");
-
-      const exists = await Vendor.findOne({
-        name: profile.name,
-        subEventId,
-        userId: TEMP_USER_ID
-      });
-
+      const exists = await Vendor.findOne({ name: profile.name, userId: user._id });
       if (exists) throw new Error("Vendor already added");
-
-      const vendor = new Vendor({
+      return await Vendor.create({
         name: profile.name,
-        categoryId: profile.categoryId,
         price: profile.price,
-        subEventId,
-        userId: TEMP_USER_ID,
-        status: "lead"
+        userId: user._id,
+        status: "lead",
       });
-
-      return await vendor.save();
-    }
-  }
+    },
+  },
 };

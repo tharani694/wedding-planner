@@ -2,94 +2,28 @@ import SubEvent from "../models/SubEvent.js";
 import Guest from "../models/Guest.js";
 import Vendor from "../models/Vendor.js";
 import Budget from "../models/Budget.js";
-import BudgetCategory from "../models/BudgetCategory.js";
-import mongoose from "mongoose";
-const TEMP_USER_ID = new mongoose.Types.ObjectId("65f000000000000000000001");
 
 export default {
   Query: {
-    subEvents: async (_, { eventId }) => {
-    //   if (!user) throw new Error("Unauthorized");
-    console.log("Fetching sub-events for eventId:", eventId);
-      return await SubEvent.find({
-        eventId,
-        userId: TEMP_USER_ID
-      });
-    }
+    subEvents: async (_, { eventId }, { user }) => {
+      if (!user) throw new Error("Not authenticated");
+      return await SubEvent.find({ eventId, userId: user._id });
+    },
   },
-
   Mutation: {
-
-    createSubEvent: async (_, { eventId, name }, { user }) => {
-    //   if (!user) throw new Error("Unauthorized");
-      const subEvent = new SubEvent({
-        name,
-        eventId,
-        userId: TEMP_USER_ID
-      });
-      const savedSubEvent = await subEvent.save();
-    //   const budget = new Budget({
-    //     subEventId: subEvent._id,
-    //     userId: TEMP_USER_ID
-    //   });
-    //   await budget.save()
-      return savedSubEvent;
-    },
-
     deleteSubEvent: async (_, { id }, { user }) => {
-    //   if (!user) throw new Error("Unauthorized");
-      await Guest.deleteMany({ subEventId: id, userId: TEMP_USER_ID });
-      await Vendor.deleteMany({ subEventId: id, userId: TEMP_USER_ID });
-
-      const budget = await Budget.findOne({
-        subEventId: id,
-        userId: TEMP_USER_ID
-      });
-      
-      if (budget) {
-        await BudgetCategory.deleteMany({
-          budgetId: budget._id,
-          userId: TEMP_USER_ID
-        });
-      
-        await Budget.deleteOne({
-          _id: budget._id,
-          userId: TEMP_USER_ID
-        });
-      }
-
-      await SubEvent.deleteOne({
-        _id: id,
-        userId: TEMP_USER_ID
-      });
-
-      return true;
-    }
-
+      if (!user) throw new Error("Not authenticated");
+      const sub = await SubEvent.findOneAndDelete({ _id: id, userId: user._id });
+      if (!sub) throw new Error("SubEvent not found");
+      await Guest.deleteMany({ subEventId: id, userId: user._id });
+      await Vendor.deleteMany({ subEventId: id, userId: user._id });
+      await Budget.deleteMany({ subEventId: id, userId: user._id });
+      return "SubEvent deleted";
+    },
   },
-
   SubEvent: {
-    budget: async (parent, _, { user }) => {
-        // if (!user) throw new Error("Unauthorized");
-        return await Budget.findOne({
-          subEventId: parent._id,
-          userId: TEMP_USER_ID
-        });
-    },
-    guests: async (parent, _, { user }) => {
-    // if (!user) throw new Error("Unauthorized");
-      return await Guest.find({
-        subEventId: parent._id,
-        userId: TEMP_USER_ID
-      });
-    },
-
-    vendors: async (parent, _, { user }) => {
-        // if (!user) throw new Error("Unauthorized");
-      return await Vendor.find({
-        subEventId: parent._id,
-        userId: TEMP_USER_ID
-      });
-    }
-  }
+    budget: async (parent) => await Budget.findOne({ subEventId: parent._id }),
+    guests: async (parent) => await Guest.find({ subEventId: parent._id }),
+    vendors: async (parent) => await Vendor.find({ subEventId: parent._id }),
+  },
 };

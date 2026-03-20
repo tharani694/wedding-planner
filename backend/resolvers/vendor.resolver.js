@@ -1,109 +1,55 @@
 import Vendor from "../models/Vendor.js";
 import BudgetCategory from "../models/BudgetCategory.js";
 import SubEvent from "../models/SubEvent.js";
-import mongoose from "mongoose";
-const TEMP_USER_ID = new mongoose.Types.ObjectId("65f000000000000000000001");
 
 export default {
   Query: {
     vendors: async (_, { subEventId }, { user }) => {
-    //   if (!user) throw new Error("Unauthorized");
-
-      return await Vendor.find({
-        subEventId,
-        userId: TEMP_USER_ID
-      });
-    }
-
-  },
-
-  Mutation: {
-
-    addVendor: async (_, { subEventId, input }, { user }) => {
-    //   if (!user) throw new Error("Unauthorized");
-
-      const subEvent = await SubEvent.findOne({
-        _id: subEventId,
-        userId: TEMP_USER_ID
-      });
-
-      if (!subEvent) throw new Error("SubEvent not found");
-
-      const vendor = new Vendor({
-        ...input,
-        subEventId,
-        userId: TEMP_USER_ID,
-        status: "lead"
-      });
-
-      return await vendor.save();
+      if (!user) throw new Error("Not authenticated");
+      const filter = { userId: user._id };
+      if (subEventId) filter.subEventId = subEventId;
+      return await Vendor.find(filter);
     },
-
+  },
+  Mutation: {
+    addVendor: async (_, { subEventId, input }, { user }) => {
+      if (!user) throw new Error("Not authenticated");
+      if (subEventId) {
+        const sub = await SubEvent.findOne({ _id: subEventId, userId: user._id });
+        if (!sub) throw new Error("SubEvent not found");
+      }
+      return await Vendor.create({ ...input, subEventId: subEventId || null, userId: user._id, status: "lead" });
+    },
     updateVendor: async (_, { input }, { user }) => {
-    //   if (!user) throw new Error("Unauthorized");
-
+      if (!user) throw new Error("Not authenticated");
       const { id, status } = input;
-
-      const vendor = await Vendor.findOne({
-        _id: id,
-        userId: TEMP_USER_ID
-      });
-
+      const vendor = await Vendor.findOne({ _id: id, userId: user._id });
       if (!vendor) throw new Error("Vendor not found");
-
       const oldStatus = vendor.status;
       vendor.status = status;
-
       await vendor.save();
-
-      const category = await BudgetCategory.findOne({
-        _id: vendor.categoryId,
-        userId: TEMP_USER_ID
-      });
-
-      if (category) {
-        const wasCounted = ["booked", "paid"].includes(oldStatus);
-        const isCounted = ["booked", "paid"].includes(status);
-
-        if (!wasCounted && isCounted) {
-        category.spent += Number(vendor.price || 0);
-        }
-
-        if (wasCounted && !isCounted) {
-        category.spent -= Number(vendor.price || 0);
-        }
-        await category.save();
-      }
-
-      return vendor;
-    },
-
-    deleteVendor: async (_, { id }, { user }) => {
-    //   if (!user) throw new Error("Unauthorized");
-
-      const vendor = await Vendor.findOne({
-        _id: id,
-        userId: TEMP_USER_ID
-      });
-
-      if (!vendor) throw new Error("Vendor not found");
-      if (["booked", "paid"].includes(vendor.status)) {
-        const category = await BudgetCategory.findOne({
-          _id: vendor.categoryId,
-          userId: TEMP_USER_ID
-        });
-
+      if (vendor.categoryId) {
+        const category = await BudgetCategory.findOne({ _id: vendor.categoryId, userId: user._id });
         if (category) {
-          category.spent -= Number(vendor.price || 0);
+          const wasCounted = ["booked", "paid"].includes(oldStatus);
+          const isCounted = ["booked", "paid"].includes(status);
+          if (!wasCounted && isCounted) category.spent += Number(vendor.price || 0);
+          if (wasCounted && !isCounted) category.spent -= Number(vendor.price || 0);
           await category.save();
         }
       }
-
-      await Vendor.deleteOne({
-        _id: id,
-        userId: TEMP_USER_ID
-      });
+      return vendor;
+    },
+    deleteVendor: async (_, { id }, { user }) => {
+      if (!user) throw new Error("Not authenticated");
+      const vendor = await Vendor.findOne({ _id: id, userId: user._id });
+      if (!vendor) throw new Error("Vendor not found");
+      if (["booked", "paid"].includes(vendor.status) && vendor.categoryId) {
+        const cat = await BudgetCategory.findOne({ _id: vendor.categoryId, userId: user._id });
+        if (cat) { cat.spent -= Number(vendor.price || 0); await cat.save(); }
+      }
+      await Vendor.deleteOne({ _id: id });
       return true;
-    }
-  }
+    },
+  },
 };
