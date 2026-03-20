@@ -27,8 +27,7 @@ const vendorSchema = new mongoose.Schema(
 
     subEventId: {
       type: mongoose.Schema.Types.ObjectId,
-      ref: "SubEvent",
-      required: true
+      ref: "SubEvent"
     },
 
     userId: {

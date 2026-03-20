@@ -21,7 +21,7 @@ export const ADD_VENDOR = gql`
 `;
 export const UPDATE_VENDOR = gql`
   mutation UpdateVendor($input: UpdateVendorInput!) {
-    updateVendor(input: $input) { id status }
+    updateVendor(input: $input) { id status categoryId }
   }
 `;
 export const DELETE_VENDOR = gql`
@@ -29,8 +29,14 @@ export const DELETE_VENDOR = gql`
 `;
 
 export const ADD_VENDOR_FROM_PROFILE = gql`
-  mutation AddVendorFromProfile($profileId: ID!) {
-    addVendorFromProfile(profileId: $profileId) { id name price status }
+  mutation AddVendorFromProfile($profileId: ID!, $subEventId: ID) {
+    addVendorFromProfile(profileId: $profileId, subEventId: $subEventId) { id name price status subEventId }
+  }
+`;
+
+export const ENSURE_BUDGET = gql`
+  mutation EnsureBudget($subEventId: ID!) {
+    ensureBudget(subEventId: $subEventId) { id total categories { id name allocated spent } }
   }
 `;
 
@@ -48,8 +54,8 @@ export const DELETE_BUDGET_CATEGORY = gql`
   mutation DeleteBudgetCategory($id: ID!) { deleteBudgetCategory(id: $id) { id } }
 `;
 export const UPDATE_BUDGET_TOTAL = gql`
-  mutation UpdateBudgetTotal($total: Int!) {
-    updateBudgetTotal(total: $total) { id total categories { id name allocated spent } }
+  mutation UpdateBudgetTotal($total: Int!, $subEventId: ID) {
+    updateBudgetTotal(total: $total, subEventId: $subEventId) { id total categories { id name allocated spent } }
   }
 `;
 

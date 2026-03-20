@@ -1,4 +1,5 @@
-import { gql } from 'apollo-server-express';
+import { gql } from 'apollo-server-express'
+
 export default gql`
   type Budget {
     id: ID!
@@ -27,9 +28,10 @@ export default gql`
   }
 
   extend type Mutation {
+    ensureBudget(subEventId: ID!): Budget
     addBudgetCategory(budgetId: ID!, name: String!, allocated: Int): BudgetCategory
     updateBudgetCategory(input: UpdateBudgetCategoryInput!): BudgetCategory
     deleteBudgetCategory(id: ID!): BudgetCategory
-    updateBudgetTotal(total: Int!): Budget
+    updateBudgetTotal(total: Int!, subEventId: ID): Budget
   }
 `

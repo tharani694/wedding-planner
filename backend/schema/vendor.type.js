@@ -1,4 +1,5 @@
-import { gql } from 'apollo-server-express';
+import { gql } from 'apollo-server-express'
+
 export default gql`
 enum VendorStatus {
     lead
@@ -9,7 +10,7 @@ enum VendorStatus {
 
   type Vendor {
     id: ID!
-    subEventId: ID!
+    subEventId: ID
     name: String!
     categoryId: ID
     price: Int
@@ -17,7 +18,7 @@ enum VendorStatus {
   }
 
   extend type Query {
-    vendors(subEventId: ID!): [Vendor]
+    vendors(subEventId: ID): [Vendor]
   }
 
   input AddVendorInput {
@@ -29,10 +30,11 @@ enum VendorStatus {
   input UpdateVendorInput {
     id: ID!
     status: VendorStatus!
+    categoryId: ID
   }
 
   extend type Mutation {
-    addVendor(subEventId: ID!, input: AddVendorInput!): Vendor
+    addVendor(subEventId: ID, input: AddVendorInput!): Vendor
     deleteVendor(id: ID!): Boolean
     updateVendor(input: UpdateVendorInput!): Vendor
   }
